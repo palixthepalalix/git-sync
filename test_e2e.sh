@@ -997,6 +997,38 @@ echo "submodule" > "$SUBMODULE"/submodule
 git -C "$SUBMODULE" add submodule
 git -C "$SUBMODULE" commit -aqm "init submodule file"
 
+# Add submodule
+git -C "$REPO" submodule add -q file://$SUBMODULE
+git -C "$REPO" commit -aqm "add submodule"
+
+GIT_SYNC \
+    --logtostderr \
+    --v=5 \
+    --submodule-mode=off \
+    --wait=0.1 \
+    --repo="file://$REPO" \
+    --root="$ROOT" \
+    --dest="link" \
+    > "$DIR"/log."$TESTCASE" 2>&1 &
+sleep 3
+assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
+rm -rf $SUBMODULE
+pass
+
+##############################################
+# Test submodules shallow
+##############################################
+testcase "submodule-sync-shallow"
+
+# Init submodule repo
+SUBMODULE_REPO_NAME="sub"
+SUBMODULE="$DIR/$SUBMODULE_REPO_NAME"
+mkdir "$SUBMODULE"
+
+git -C "$SUBMODULE" init -q
+echo "submodule" > "$SUBMODULE"/submodule
+git -C "$SUBMODULE" add submodule
+git -C "$SUBMODULE" commit -aqm "init submodule file"
 # Init nested submodule repo
 NESTED_SUBMODULE_REPO_NAME="nested-sub"
 NESTED_SUBMODULE="$DIR/$NESTED_SUBMODULE_REPO_NAME"
@@ -1016,7 +1048,7 @@ git -C "$REPO" commit -aqm "add submodule"
 GIT_SYNC \
     --logtostderr \
     --v=5 \
-    --submodule-mode=recursive \
+    --submodule-mode=off \
     --wait=0.1 \
     --repo="file://$REPO" \
     --root="$ROOT" \
@@ -1027,39 +1059,6 @@ ls -alF "$ROOT"/link/$SUBMODULE_REPO_NAME
 assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
 rm -rf $SUBMODULE
 rm -rf $NESTED_SUBMODULE
-pass
-
-##############################################
-# Test submodules shallow
-##############################################
-testcase "submodule-sync-shallow"
-
-# Init submodule repo
-SUBMODULE_REPO_NAME="sub"
-SUBMODULE="$DIR/$SUBMODULE_REPO_NAME"
-mkdir "$SUBMODULE"
-
-git -C "$SUBMODULE" init -q
-echo "submodule" > "$SUBMODULE"/submodule
-git -C "$SUBMODULE" add submodule
-git -C "$SUBMODULE" commit -aqm "init submodule file"
-
-# Add submodule
-git -C "$REPO" submodule add -q file://$SUBMODULE
-git -C "$REPO" commit -aqm "add submodule"
-
-GIT_SYNC \
-    --logtostderr \
-    --v=5 \
-    --submodule-mode=off \
-    --wait=0.1 \
-    --repo="file://$REPO" \
-    --root="$ROOT" \
-    --dest="link" \
-    > "$DIR"/log."$TESTCASE" 2>&1 &
-sleep 3
-assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
-rm -rf $SUBMODULE
 pass
 
 ##############################################
