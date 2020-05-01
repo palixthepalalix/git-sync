@@ -1048,7 +1048,7 @@ git -C "$REPO" commit -aqm "add submodule"
 GIT_SYNC \
     --logtostderr \
     --v=5 \
-    --submodule-mode=off \
+    --submodule-mode=shallow \
     --wait=0.1 \
     --repo="file://$REPO" \
     --root="$ROOT" \
@@ -1056,7 +1056,10 @@ GIT_SYNC \
     > "$DIR"/log."$TESTCASE" 2>&1 &
 sleep 3
 ls -alF "$ROOT"/link/$SUBMODULE_REPO_NAME
-assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
+assert_link_exists "$ROOT"/link
+assert_file_exists "$ROOT"/link/file
+assert_file_exists "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
+assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/$NESTED_SUBMODULE_REPO_NAME/nested-submodule
 rm -rf $SUBMODULE
 rm -rf $NESTED_SUBMODULE
 pass
