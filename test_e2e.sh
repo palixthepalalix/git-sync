@@ -1055,8 +1055,6 @@ GIT_SYNC \
     --dest="link" \
     > "$DIR"/log."$TESTCASE" 2>&1 &
 sleep 3
-ls -alF "$ROOT"/link/$SUBMODULE_REPO_NAME
-ls -alF "$ROOT"/link/$SUBMODULE_REPO_NAME/$NESTED_SUBMODULE_REPO_NAME
 assert_link_exists "$ROOT"/link
 assert_file_exists "$ROOT"/link/file
 assert_file_exists "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
