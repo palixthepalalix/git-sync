@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -677,7 +678,7 @@ git -C "$REPO" commit -qam "$TESTCASE 1"
 { (
     for i in 1 2; do
         echo -e 'HTTP/1.1 200 OK\r\n\r\nusername=my-username\npassword=wrong' \
-            | nc -N -l $NCPORT > /dev/null;
+            | nc  -l $NCPORT > /dev/null;
     done
   ) &
 }
@@ -699,7 +700,7 @@ assert_file_absent "$ROOT"/link/file
 { (
     for i in 1 2; do
         echo -e 'HTTP/1.1 200 OK\r\n\r\nusername=my-username\npassword=my-password' \
-            | nc -N -l $NCPORT > /dev/null;
+            | nc -l $NCPORT > /dev/null;
     done
   ) &
 }
@@ -979,6 +980,39 @@ if [ $expected_depth != $submodule_depth ]; then
     fail "initial submodule depth mismatch expected=$expected_depth actual=$submodule_depth"
 fi
 # Wrap up
+rm -rf $SUBMODULE
+pass
+
+##############################################
+# Test submodules off
+##############################################
+testcase "submodule-sync-off"
+
+# Init submodule repo
+SUBMODULE_REPO_NAME="sub"
+SUBMODULE="$DIR/$SUBMODULE_REPO_NAME"
+mkdir "$SUBMODULE"
+
+git -C "$SUBMODULE" init -q
+echo "submodule" > "$SUBMODULE"/submodule
+git -C "$SUBMODULE" add submodule
+git -C "$SUBMODULE" commit -aqm "init submodule file"
+
+# Add submodule
+git -C "$REPO" submodule add -q file://$SUBMODULE
+git -C "$REPO" commit -aqm "add submodule"
+
+GIT_SYNC \
+    --logtostderr \
+    --v=5 \
+    --submodule-mode=off \
+    --wait=0.1 \
+    --repo="file://$REPO" \
+    --root="$ROOT" \
+    --dest="link" \
+    > "$DIR"/log."$TESTCASE" 2>&1 &
+sleep 3
+assert_file_absent "$ROOT"/link/$SUBMODULE_REPO_NAME/submodule
 rm -rf $SUBMODULE
 pass
 
